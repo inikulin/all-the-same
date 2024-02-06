@@ -102,7 +102,7 @@
 //! impl Variants {
 //!     pub fn value(&self) -> &str {
 //!         all_the_same!(match self {
-//!             Variants::[Foo, #[cfg(test)]Bar](v) => v
+//!             Self::[Foo, #[cfg(test)]Bar](v) => v
 //!         })
 //!     }
 //! }
@@ -131,7 +131,7 @@ impl Parse for Variant {
 
 struct Args {
     expr: Expr,
-    enum_name: Ident,
+    enum_name: Option<Ident>,
     variants: Punctuated<Variant, Comma>,
     inner_name: Ident,
     arm_expr: Expr,
@@ -150,7 +150,13 @@ impl Parse for Args {
             enum_name: {
                 braced!(match_body_content in input);
 
-                match_body_content.parse()?
+                let enum_name = match_body_content.parse::<Option<Ident>>()?;
+
+                if enum_name.is_none() {
+                    match_body_content.parse::<Token!(Self)>()?;
+                }
+
+                enum_name
             },
             variants: {
                 match_body_content.parse::<Token!(::)>()?;
@@ -186,6 +192,11 @@ pub fn all_the_same(item: TokenStream) -> TokenStream {
     let enum_name = &args.enum_name;
     let inner_name = &args.inner_name;
     let arm_expr = &args.arm_expr;
+
+    let enum_name = match enum_name {
+        Some(name) => quote!(#name),
+        None => quote!(Self),
+    };
 
     let arms = args.variants.iter().map(|variant| {
         let name = &variant.name;

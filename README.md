@@ -1,5 +1,8 @@
 # All the same!
 
+[![crates.io](https://img.shields.io/crates/v/all-the-same.svg)](https://crates.io/crates/all-the-same)
+[![docs.rs](https://docs.rs/all-the-same/badge.svg)](https://docs.rs/all-the-same)
+
 If you ever had code that looks like this:
 
 ```rust
